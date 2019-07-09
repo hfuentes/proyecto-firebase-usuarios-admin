@@ -4,7 +4,6 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-admin.initializeApp();
 const express = require('express');
 const app = express();
 app.use(express.json());
@@ -32,10 +31,34 @@ const authenticate = async (req, res, next) => {
 
 // Metodo para obtener token de sesion
 app.get('/token', async (req, res) => {
-    /*functions.auth().signInWithEmailAndPassword('hectorfuentesg@gmail.com', '123456a').catch(function (error) {
+    /*admin.auth().signInWithEmailAndPassword('hectorfuentesg@gmail.com', '123456a').catch(function (err) {
+        console.log("--------------------------------------------");
+        console.log("--------------------------------------------");
+        console.log("--------------------------------------------");
+        console.log(err);
+        console.log("--------------------------------------------");
+        console.log("--------------------------------------------");
+        console.log("--------------------------------------------");
+    });*/
+
+    /*firebase.auth().signInWithEmailAndPassword('hectorfuentesg@gmail.com', '123456a').then(rs=>{
+
+    }).catch(err=>{});*/
+    /*firebase.auth().signInWithEmailAndPassword('hectorfuentesg@gmail.com', '123456a').catch(function (error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        if (errorCode === 'auth/wrong-password') {
+            alert('Wrong password.');
+        } else {
+            alert(errorMessage);
+        }
         console.log(error);
     });*/
-    let token = { token: '..aun nada por acá..' };
+
+    let token = {
+        token: 'nada de nada ...'
+    };
     res.status(200).send(token);
 });
 
@@ -54,10 +77,19 @@ app.post('/jugador', async (req, res) => {
     });
 });
 
+app.get('/jugadores', async (req, res) => {
+    const data = await admin.database().ref(`/datos-juego/jugadores`).once('value');
+    res.status(201).json({
+        respuesta: "OK",
+        jugadores: data
+    });
+});
+
 // Metodo de prueba para obtener version API
 app.get('/version', async (req, res) => {
     res.status(200).send({
-        respuesta: ".. estamos trabajando para usted .."
+        respuesta: "OK",
+        version: "1.0"
     });
 });
 
