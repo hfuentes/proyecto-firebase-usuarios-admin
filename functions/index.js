@@ -4,9 +4,13 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+admin.initializeApp(functions.config().firebase);
 const express = require('express');
 const app = express();
 app.use(express.json());
+const db = admin.database();
+const refDatosJuego = db.ref("datos-juego");
+const jugadoresRef = refDatosJuego.child("jugadores");
 
 // Metodo para verficar token autorizacion
 const authenticate = async (req, res, next) => {
@@ -55,25 +59,39 @@ app.get('/token', async (req, res) => {
         }
         console.log(error);
     });*/
-
+    admin.auth().getUserByEmail('hectorfuentesg@gmail.com').then(data => {
+        console.dir(data);
+    }, err => console.dir(err)).catch(err => {
+        console.dir(err);
+    });
     let token = {
-        token: 'nada de nada ...'
+        resultado: "OK",
+        token: functions.config().firebase
     };
     res.status(200).send(token);
 });
 
-// Inserta o reemplaza registro de juagador
+// Inserta o reemplaza registro de jugador
 app.post('/jugador', async (req, res) => {
-    const jugador = req.body.jugador;
-    const snapshot = await admin.database().ref(`/datos-juego/jugadores/${jugador.username}`).push({
-        nombre: jugador.nombre,
-        nivel: jugador.nivel
-    });
-    const val = snapshot.val();
-    res.status(201).json({
-        respuesta: "OK",
-        mensaje: val.message,
-        jugador: jugador
+    console.log("POST /api/jugador");
+    console.log(req.body);
+    let ref = jugadoresRef.child(req.body.username);
+    ref.set({
+        nombre: req.body.nombre,
+        nivel: req.body.nivel
+    }, (err) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({
+                respuesta: "ERROR",
+                error: err
+            });
+        } else {
+            console.log(req.body)
+            res.status(201).send({
+                respuesta: "OK"
+            });
+        }
     });
 });
 
