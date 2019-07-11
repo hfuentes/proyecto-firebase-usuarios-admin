@@ -1,15 +1,20 @@
-// Funciones REST API para interectuar con la base de datos de juegadores
+// REST API para interectuar con la base de datos de jugadores
 
 'use strict';
 
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-admin.initializeApp(functions.config().firebase);
 const express = require('express');
 const app = express();
 app.use(express.json());
-const db = admin.database();
-const refDatosJuego = db.ref("datos-juego");
+
+const functions = require('firebase-functions');
+const key = require('./firebase-key');
+const admin = require('firebase-admin');
+admin.initializeApp({
+    credential: admin.credential.cert(key),
+    databaseURL: "https://base-usuarios-admin.firebaseio.com"
+});
+
+const refDatosJuego = admin.database().ref("datos-juego");
 const jugadoresRef = refDatosJuego.child("jugadores");
 
 // Metodo para verficar token autorizacion
@@ -32,6 +37,14 @@ const authenticate = async (req, res, next) => {
 //app.use(authenticate);
 
 // Metodos REST API
+
+// Metodo para obtener version API
+app.get('/version', async (req, res) => {
+    res.status(200).send({
+        respuesta: "OK",
+        version: "1.0"
+    });
+});
 
 // Metodo para obtener token de sesion
 app.get('/token', async (req, res) => {
@@ -59,14 +72,14 @@ app.get('/token', async (req, res) => {
         }
         console.log(error);
     });*/
-    admin.auth().getUserByEmail('hectorfuentesg@gmail.com').then(data => {
+    /*admin.auth().getUserByEmail('hectorfuentesg@gmail.com').then(data => {
         console.dir(data);
     }, err => console.dir(err)).catch(err => {
         console.dir(err);
-    });
+    });*/
     let token = {
         resultado: "OK",
-        token: functions.config().firebase
+        token: key
     };
     res.status(200).send(token);
 });
@@ -95,19 +108,12 @@ app.post('/jugador', async (req, res) => {
     });
 });
 
+// Metodo para obtener lista completa de jugadores
 app.get('/jugadores', async (req, res) => {
     const data = await admin.database().ref(`/datos-juego/jugadores`).once('value');
     res.status(201).json({
         respuesta: "OK",
         jugadores: data
-    });
-});
-
-// Metodo de prueba para obtener version API
-app.get('/version', async (req, res) => {
-    res.status(200).send({
-        respuesta: "OK",
-        version: "1.0"
     });
 });
 
